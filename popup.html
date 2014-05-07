@@ -1,0 +1,42 @@
+<html>
+<head>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+  <script src="popup.js"></script>
+  <style>
+      body {
+          background-color: #000000;
+          color: #eeeeee;
+          font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+          font-weight: bold;
+          font-style: italic;
+          font-size: 14pt;
+      }
+      .image {
+          padding:10px;
+      }
+      .image img {
+          max-width: 350px;
+      }
+      .titlediv, .editdiv {
+          float:left;
+      }
+      .titlediv {
+          padding-top: 6px;
+          padding-right: 15px;
+
+
+      }
+      .cleardiv{
+          clear:both;
+          width:10px;
+      }
+  </style>
+</head>
+<body style="width: 400px">
+  <div>Filter: <input id="search"></div>
+  <div id="bookmarks"></div>
+  <div id="editdialog"></div>
+  <div id="deletedialog"></div>
+  <div id="adddialog"></div>
+</body>
+</html>
