@@ -7,6 +7,10 @@ var IMAGE_WIDTH = 110;
 function dumpBookmarks(step) {
     page = Math.max(0, page+step);
     globalcounter = 0;
+    var images = $('img');
+    $.each(images, function() {
+        $(this).attr('src', '');
+    });
     document.getElementById("bookmarks").innerHTML = '';
     var bookmarkTreeNodes = chrome.bookmarks.getTree(
         function(bookmarkTreeNodes) {
