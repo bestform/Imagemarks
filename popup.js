@@ -1,31 +1,28 @@
-// Copyright (c) 2012 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+var page = -1;
+var pagesize = 11;
+var globalcounter = 0;
+var IMAGE_WIDTH = 110;
 
-// Search the bookmarks when entering the search keyword.
-$(function() {
-  $('#search').change(function() {
-     $('#bookmarks').empty();
-     dumpBookmarks($('#search').val());
-  });
-});
 // Traverse the bookmark tree, and print the folder and nodes.
-function dumpBookmarks(query) {
-  var bookmarkTreeNodes = chrome.bookmarks.getTree(
-    function(bookmarkTreeNodes) {
-      dumpTreeNodes(bookmarkTreeNodes, query, $('#bookmarks'));
-    });
+function dumpBookmarks(step) {
+    page = Math.max(0, page+step);
+    globalcounter = 0;
+    document.getElementById("bookmarks").innerHTML = '';
+    var bookmarkTreeNodes = chrome.bookmarks.getTree(
+        function(bookmarkTreeNodes) {
+            dumpTreeNodes(bookmarkTreeNodes, $('#bookmarks'));
+        });
 }
-function dumpTreeNodes(bookmarkNodes, query, wrapper) {
 
-  var i;
-  for (i = bookmarkNodes.length-1; i >= 0; i--) {
-    dumpNode(bookmarkNodes[i], query, wrapper);
-  }
-
+function dumpTreeNodes(bookmarkNodes, wrapper, counter) {
+    var i;
+    var completesize = bookmarkNodes.length-1;
+    for (i = completesize; i >= 0; i--) {
+        dumpNode(bookmarkNodes[i], wrapper);
+    }
 }
+
 function isImage(bookmarkNode) {
-    console.log("testing "+ bookmarkNode.title);
     if(!bookmarkNode.url){
         return false;
     }
@@ -38,96 +35,108 @@ function isImage(bookmarkNode) {
     }
     return false;
 }
-function dumpNode(bookmarkNode, query, wrapper) {
-  if (bookmarkNode.title) {
-    if (query && !bookmarkNode.children) {
-      if (String(bookmarkNode.title).toLowerCase().indexOf(query.toLowerCase()) == -1) {
-        return $('');
-      }
+function dumpNode(bookmarkNode, wrapper) {
+
+    if(globalcounter > (pagesize+1) * page + pagesize){
+        return;
     }
+    if(!bookmarkNode.title){
+      bookmarkNode.title = "no title";
+    }
+
 
     if(isImage(bookmarkNode)){
-      var span = $('<div>')
-      var titlediv = $('<div class="titlediv">');
-      var editdiv = $('<div class="editdiv">');
-      var clear = $('<div class="cleardiv">');
-      var title = $('<span>');
-      title.text(bookmarkNode.title);
-      titlediv.append(title);
+        if(globalcounter < (pagesize+1) * page){
+            globalcounter++;
+            return;
+        }
+        var span = $('<div>');
 
-      var editlink = $('<input type="button" value="Edit">');
-      var editspan = $('<span>');
-      var editinput = $('<input>');
-      var ok = $('<input type="button" value="OK">');
-      var cancel = $('<input type="button" value="Cancel">');
-      editspan.append(editinput);
-      editspan.append(ok);
-      editspan.append(cancel);
+        var previewDiv = $("#preview");
+        var anchor = $('<a>');
+        anchor.attr('href', bookmarkNode.url);
 
+        var imageNode = $('<img />');
+        var imageId = guid();
 
-      span.hover(function() {
-        editdiv.append(editlink);
-        editlink.click(function() {
-          editinput.val(title.text());
-          editlink.css('visibility', 'hidden');
-          title.hide();
-          editdiv.empty();
-          editdiv.append(editspan);
+        imageNode.attr("src", bookmarkNode.url);
+        imageNode.attr("id", imageId);
+        imageNode.css("max-width", IMAGE_WIDTH);
+        imageNode.css("max-height", IMAGE_WIDTH);
+        imageNode.css("display", "none");
 
-          ok.click(function(){
-            chrome.bookmarks.update(String(bookmarkNode.id), {
-              title: editinput.val()
-            });
-            title.text(editinput.val());
-
-            editspan.remove();
-            editlink.css('visibility', 'visible');
-            title.show();
-          });
-
-          cancel.click(function(){
-            editspan.remove();
-            title.show();
-            editlink.css('visibility', 'visible');
-          });
-
-        });
-            editlink.fadeIn();
-      },
-      // unhover
-      function() {
-        editlink.remove();
-      });
-
-      var anchor = $('<a>');
-      anchor.attr('href', bookmarkNode.url);
-
-      var imageNode = $('<img />');
-      imageNode.attr("src", bookmarkNode.url);
-
-      anchor.append(imageNode);
-      anchor.click(function() {
+        anchor.append(imageNode);
+        anchor.click(function() {
           chrome.tabs.create({url: bookmarkNode.url});
-      });
+        });
+
+        var canvas = $("<canvas />");
+        canvas.attr("width", IMAGE_WIDTH);
+        canvas.attr("height", IMAGE_WIDTH);
+        var canvasId = guid();
+        canvas.attr("id", canvasId);
+
+        anchor.append(canvas);
+
+        imageNode.on("load", function(){
+            var canvas = document.getElementById(canvasId);
+            var image = document.getElementById(imageId);
+
+            var width = image.naturalWidth;
+            var height = image.naturalHeight;
+
+            var factor = 1;
+            if(width < height){
+                factor = IMAGE_WIDTH/width;
+            } else {
+                factor = IMAGE_WIDTH/height;
+            }
+            var ctx = canvas.getContext("2d");
+            ctx.drawImage(image, 0, 0, width*factor, height*factor);
+        });
 
 
-      span.append(titlediv);
-      span.append(editdiv);
-      span.append(clear);
-      span.append(anchor);
-      span.attr("class", "image");
-      wrapper.append(span);
+        span.mouseover(function(){
+            $("#"+canvasId).css("display", "none");
+            $("#"+imageId).css("display", "inline-block");
+        });
+        span.mouseout(function(){
+            $("#"+imageId).css("display", "none");
+            $("#"+canvasId).css("display", "inline-block");
+        });
+
+
+        span.append(anchor);
+        span.attr("class", "image");
+        span.css("display", "inline-block");
+        span.css("width", IMAGE_WIDTH);
+        span.css("height", IMAGE_WIDTH);
+        wrapper.append(span);
+
+
+        globalcounter++;
     }
 
-  }
-
-
-  if (bookmarkNode.children && bookmarkNode.children.length > 0) {
-    dumpTreeNodes(bookmarkNode.children, query, wrapper);
-  }
+    if (bookmarkNode.children && bookmarkNode.children.length > 0) {
+        dumpTreeNodes(bookmarkNode.children, wrapper);
+    }
 
 }
 
+function guid() {
+    function _p8(s) {
+        var p = (Math.random().toString(16)+"000000000").substr(2,8);
+        return s ? "-" + p.substr(0,4) + "-" + p.substr(4,4) : p ;
+    }
+    return _p8() + _p8(true) + _p8(true) + _p8();
+}
+
 document.addEventListener('DOMContentLoaded', function () {
-  dumpBookmarks();
+    $("#nextpage").click(function(){
+        dumpBookmarks(1);
+    });
+    $("#previouspage").click(function(){
+        dumpBookmarks(-1);
+    });
+    dumpBookmarks(1);
 });
