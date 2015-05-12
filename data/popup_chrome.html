@@ -1,0 +1,42 @@
+<html>
+<head>
+  <script src="lib/jquery.min.js"></script>
+  <script src="bridge/bridge_chrome.js"></script>
+  <script src="popup.js"></script>
+  <style>
+      body {
+          background-color: #000000;
+          color: #eeeeee;
+          font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+          font-weight: bold;
+          font-style: italic;
+          font-size: 14pt;
+      }
+      .image {
+          padding: 10px 10px 0px 0px;
+          display: inline;
+          overflow:hidden;
+      }
+
+      .titlediv, .editdiv {
+          float:left;
+      }
+      .titlediv {
+          padding-top: 6px;
+          padding-right: 15px;
+
+
+      }
+      .cleardiv{
+          clear:both;
+          width:10px;
+      }
+
+
+  </style>
+</head>
+<body style="width: 400px" id="body">
+  <div id="bookmarks"></div>
+  <a href="#" id="previouspage">Previous Page</a> || <a href="#" id="nextpage">Next Page</a>
+</body>
+</html>

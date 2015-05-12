@@ -12,7 +12,7 @@ function dumpBookmarks(step) {
         $(this).attr('src', '');
     });
     document.getElementById("bookmarks").innerHTML = '';
-    var bookmarkTreeNodes = chrome.bookmarks.getTree(
+    bridge.traverseBookmarksTree(
         function(bookmarkTreeNodes) {
             dumpTreeNodes(bookmarkTreeNodes, $('#bookmarks'));
         });
@@ -58,7 +58,7 @@ function dumpNode(bookmarkNode, wrapper) {
 
         var previewDiv = $("#preview");
         var anchor = $('<a>');
-        anchor.attr('href', bookmarkNode.url);
+        anchor.attr('href', '#');
 
         var imageNode = $('<img />');
         var imageId = guid();
@@ -71,7 +71,7 @@ function dumpNode(bookmarkNode, wrapper) {
 
         anchor.append(imageNode);
         anchor.click(function() {
-          chrome.tabs.create({url: bookmarkNode.url});
+          bridge.openTab(bookmarkNode.url);
         });
 
         var canvas = $("<canvas />");
@@ -135,12 +135,3 @@ function guid() {
     return _p8() + _p8(true) + _p8(true) + _p8();
 }
 
-document.addEventListener('DOMContentLoaded', function () {
-    $("#nextpage").click(function(){
-        dumpBookmarks(1);
-    });
-    $("#previouspage").click(function(){
-        dumpBookmarks(-1);
-    });
-    dumpBookmarks(1);
-});
